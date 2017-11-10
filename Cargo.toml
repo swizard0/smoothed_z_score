@@ -3,7 +3,7 @@ name = "smoothed_z_score"
 description = "Smoothed z-score algo (very robust thresholding algorithm)"
 keywords = [ "peaks", "signal", "timeseries", "z-score", "dispersion", "peak-detection" ]
 readme = "README.md"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Jean-Paul", "Alexey Voznyuk <me@swizard.info>"]
 license = "MIT"
 

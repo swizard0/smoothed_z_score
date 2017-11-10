@@ -38,7 +38,7 @@ Consider this dataset (from the original stackoverflow reply):
         let output: Vec<_> = input
             .into_iter()
             .enumerate()
-            .peaks(PeaksDetector::new(30, 5.0, 0.0).unwrap(), |e| e.1)
+            .peaks(PeaksDetector::new(30, 5.0, 0.0), |e| e.1)
             .map(|((i, _), p)| (i, p))
             .collect();
         assert_eq!(output, vec![

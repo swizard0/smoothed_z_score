@@ -10,21 +10,12 @@ pub struct PeaksDetector {
     window: Vec<f64>,
 }
 
-#[derive(Clone, PartialEq, Debug)]
-pub enum Error {
-    ZeroLagValue,
-}
-
 impl PeaksDetector {
-    pub fn new(lag: usize, threshold: f64, influence: f64) -> Result<PeaksDetector, Error> {
-        if lag == 0 {
-            Err(Error::ZeroLagValue)
-        } else {
-            Ok(PeaksDetector {
-                threshold,
-                influence,
-                window: Vec::with_capacity(lag),
-            })
+    pub fn new(lag: usize, threshold: f64, influence: f64) -> PeaksDetector {
+        PeaksDetector {
+            threshold,
+            influence,
+            window: Vec::with_capacity(lag),
         }
     }
 
@@ -32,27 +23,32 @@ impl PeaksDetector {
         if self.window.len() < self.window.capacity() {
             self.window.push(value);
             None
-        } else {
-            let (mean, stddev) = self.stats();
+        } else if let (Some((mean, stddev)), Some(&window_last)) = (self.stats(), self.window.last()) {
             self.window.remove(0);
             if (value - mean).abs() > (self.threshold * stddev) {
                 let next_value =
-                    (value * self.influence) + ((1. - self.influence) * self.window.last().cloned().unwrap());
+                    (value * self.influence) + ((1. - self.influence) * window_last);
                 self.window.push(next_value);
                 Some(if value > mean { Peak::High } else { Peak::Low })
             } else {
                 self.window.push(value);
                 None
             }
+        } else {
+            None
         }
     }
 
-    fn stats(&self) -> (f64, f64) {
-        let window_len = self.window.len() as f64; // assume !window.is_empty() here
-        let mean = self.window.iter().fold(0., |a, v| a + v) / window_len;
-        let sq_sum = self.window.iter().fold(0., |a, v| a + ((v - mean) * (v - mean)));
-        let stddev = (sq_sum / window_len).sqrt();
-        (mean, stddev)
+    pub fn stats(&self) -> Option<(f64, f64)> {
+        if self.window.is_empty() {
+            None
+        } else {
+            let window_len = self.window.len() as f64;
+            let mean = self.window.iter().fold(0., |a, v| a + v) / window_len;
+            let sq_sum = self.window.iter().fold(0., |a, v| a + ((v - mean) * (v - mean)));
+            let stddev = (sq_sum / window_len).sqrt();
+            Some((mean, stddev))
+        }
     }
 }
 
@@ -94,12 +90,6 @@ mod tests {
     use super::{Peak, PeaksDetector, PeaksFilter};
 
     #[test]
-    #[should_panic]
-    fn constructor_error() {
-        let _ = PeaksDetector::new(0, 0., 0.).unwrap();
-    }
-
-    #[test]
     fn sample_data() {
         let input = vec![
             1.0, 1.0, 1.1, 1.0, 0.9, 1.0, 1.0, 1.1, 1.0, 0.9, 1.0, 1.1, 1.0, 1.0, 0.9, 1.0, 1.0, 1.1, 1.0,
@@ -110,7 +100,7 @@ mod tests {
         let output: Vec<_> = input
             .into_iter()
             .enumerate()
-            .peaks(PeaksDetector::new(30, 5.0, 0.0).unwrap(), |e| e.1)
+            .peaks(PeaksDetector::new(30, 5.0, 0.0), |e| e.1)
             .map(|((i, _), p)| (i, p))
             .collect();
         assert_eq!(output, vec![
