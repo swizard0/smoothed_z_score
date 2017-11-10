@@ -26,7 +26,7 @@ Consider this dataset (from the original stackoverflow reply):
 ![sample dataset](https://i.stack.imgur.com/KdpF7.jpg)
 
 ```rust
-    use smoothed_z_score::{Peak, PeaksDetector};
+    use smoothed_z_score::{Peak, PeaksDetector, PeaksFilter};
 
     fn main() {
         let input = vec![
@@ -38,7 +38,7 @@ Consider this dataset (from the original stackoverflow reply):
         let output: Vec<_> = input
             .into_iter()
             .enumerate()
-            .peaks(30, 5.0, 0.0, |e| e.1)
+            .peaks(PeaksDetector::new(30, 5.0, 0.0).unwrap(), |e| e.1)
             .map(|((i, _), p)| (i, p))
             .collect();
         assert_eq!(output, vec![
