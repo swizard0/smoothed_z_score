@@ -1,0 +1,10 @@
+[package]
+name = "smoothed_z_score"
+description = "Smoothed z-score algo (very robust thresholding algorithm)"
+keywords = [ "peaks", "signal", "timeseries", "z-score", "dispersion", "peak-detection" ]
+readme = "README.md"
+version = "0.1.0"
+authors = ["Jean-Paul", "Alexey Voznyuk <me@swizard.info>"]
+license = "MIT"
+
+[dependencies]
